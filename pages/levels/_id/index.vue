@@ -236,10 +236,6 @@ export default {
     font-size: 3rem;
     margin-top: 60px;
 }
-.btn {
-    margin: 30px auto;
-    width: 250px;
-}
 .box {
     margin: 50px auto;
     display: grid;
@@ -290,5 +286,22 @@ export default {
     -webkit-transform: skewY(-45deg);
     -moz-transform: skewY(-45deg);
     -ms-transform: skewY(-45deg);
+}
+@media (max-width: 768px) {
+    #clock {
+        font-size: 1.5rem;
+    }
+}
+</style>
+
+<style scoped>
+.btn {
+    margin: 100px auto;
+}
+@media (max-width: 768px) {
+    .btn {
+        font-size: 1.5rem;
+        width: 200px;
+    }
 }
 </style>
