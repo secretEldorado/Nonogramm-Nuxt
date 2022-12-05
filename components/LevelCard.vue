@@ -3,8 +3,9 @@
     <div class="level-container">
         <h3>{{level.title}}</h3>
         <div class="levelcard-flex">
-            <p>created by: {{level.user_id}}</p>
-            <p>size: {{length}}x{{height}}</p>
+            <p>created by: {{level.userName}}</p>
+            <p>color: {{level.color}}</p>
+            <p>size: {{level.length}}x{{level.height}}</p>
         </div>
     </div>
   </nuxt-link>
@@ -14,17 +15,6 @@
 export default {
     name: 'LevelCard',
     props: ['level', 'id'],
-    data(){
-        return {
-            length: 0,
-            height:0
-        }
-    },
-    created(){
-        const leveldata = this.$props.level.body.split(",")
-        this.length = leveldata[0].length
-        this.height = leveldata.length
-    }
 }
 </script>
 
