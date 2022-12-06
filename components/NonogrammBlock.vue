@@ -27,6 +27,13 @@ export default {
           }
           this.$emit('change-field', this.id, this.isBlack)
           break
+        case 10 :
+          if(!this.isBlack)
+            this.isBlack = true
+          else if(this.isBlack)
+            this.isBlack = false
+          this.$emit('change-field', this.id, this.isBlack)
+          break
       }
     }
   }

@@ -20,7 +20,6 @@ export default {
                 })
                 this.$router.push("/")
             } catch(error) {
-                console.log(error.response)
                 return error.response.data
             }
         }

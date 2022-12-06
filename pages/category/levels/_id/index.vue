@@ -22,7 +22,7 @@
         </div>
     </div>
     <div class=" btn">
-      <nuxt-link to='/levels'>{{button}}</nuxt-link>
+      <nuxt-link to='/category'>{{button}}</nuxt-link>
     </div>
   </div>
 </template>

@@ -5,7 +5,7 @@
     </h1>
     <p>{{errormsg}}</p>
     <div class="btn">
-      <nuxt-link to='/levels'>Level</nuxt-link>
+      <nuxt-link to='/category'>Level</nuxt-link>
     </div>
   </div>
 </template>

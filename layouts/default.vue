@@ -42,7 +42,13 @@ ul {
     margin:10px auto;
     overflow: auto;
 }
-
+.error {
+  font-size: 1.5rem;
+  color: red;
+}
+input {
+  font-family: 'Seaweed', cursive;
+}
 .container {
     margin:0 auto;
     padding: 0 60px;
@@ -56,12 +62,24 @@ h1 {
   padding-top: 25px;
 }
 
+.box-playing-field {
+    display: grid;
+}
+
+.black-color {
+    background-color: black;
+}
+
+.white-color {
+    background-color: white;
+}
+
 .btn {
   font-size: 2rem;
   background-color: yellow;
   border: solid green 3px;
   border-radius: 5px;
-  padding: 30px auto;
+  margin: 30px auto;
   width: 20%;
   text-align: center;
   box-shadow: 5px 10px 18px #888888;
@@ -75,10 +93,13 @@ h1 {
     h1 {
         font-size: 2rem;
     }
-
+    h2 {
+      font-size: 1rem;
+    }
     .btn {
       width: 200px;
     }
+    
 }
 
 </style>

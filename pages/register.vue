@@ -21,7 +21,6 @@ export default {
                 if(response.status > 400) {
                     return response.data
                 }
-                console.log(response)
                 alert(response.data.user.username +' signed in')
                 this.$router.push("/")
         }

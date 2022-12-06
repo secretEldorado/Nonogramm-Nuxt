@@ -11,7 +11,7 @@
             <nuxt-link to='/create'>Make Level</nuxt-link>
         </li>
         <li>
-          <a href="#" @click="logout">Logout</a>
+          <a @click="logout">Logout</a>
         </li>
       </div>
       <div v-else class="flex">
@@ -32,12 +32,13 @@ export default {
     methods: {
       async logout() {
         await this.$auth.logout()
+        this.$router.push("/")
       }
     }
 }
 </script>
 
-<style>
+<style scoped>
 .header {
   display: flex;
   justify-content: space-between;

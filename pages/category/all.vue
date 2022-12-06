@@ -3,8 +3,12 @@
     <h1>
       Choose a level
     </h1>
+    <p class="error">{{errormsg}}</p>
     <LevelCard v-for="level in levels" :id="level.id" :key="level.id"
     :level="level"/>
+    <div class="btn">
+      <nuxt-link to='/category'>back to Category</nuxt-link>
+    </div>
   </div>
 </template>
 
@@ -37,6 +41,14 @@ export default {
 }
 </script>
 
-<style scoped>
-
+<style>
+.btn {
+    width: 25%;
+}
+@media (max-width: 768px) {
+    .btn {
+        font-size: 1.5rem;
+        width: 200px;
+    }
+}
 </style>

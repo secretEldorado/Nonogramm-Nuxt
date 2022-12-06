@@ -39,4 +39,17 @@ export default {
     justify-content: space-between;
 }
 
+@media (max-width: 768px) {
+    .level-container{
+        border: 2px solid green;
+    }
+
+   .level-container h3{
+        font-size: 1rem;
+    }
+
+    .level-container p {
+        font-size: 0.8rem;
+    }
+}
 </style>
