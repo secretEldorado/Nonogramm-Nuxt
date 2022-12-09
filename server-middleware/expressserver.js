@@ -176,9 +176,23 @@ app.get('/getLevel', async (req, res) => {
           model: User
         },
         where: {
-          column: {
-            [Op.between]: [range[0], range[1]]
+          [Op.or]: {
+            column: {
+              [Op.between]: [range[0], range[1]]
+            },
+            row: {
+              [Op.between]: [range[0], range[1]]
+            }
           }
+        }
+      })
+    } else if(req.query.user_id){
+      levels = await Level.findAll({
+        include: {
+          model: User
+        },
+        where: {
+          user_id: req.query.user_id
         }
       })
     }
@@ -203,7 +217,9 @@ app.get('/getLevel', async (req, res) => {
         color: level.dataValues.color,
         length,
         height,
-        userName: level.dataValues.user.user_name
+        userName: level.dataValues.user.user_name,
+        user_id: level.dataValues.user.id,
+        name: level.dataValues.user.name
       })
     })
     res.json(data)
@@ -224,7 +240,6 @@ app.post('/signIn', async (req, res) => {
         user_name: username 
       }
       })
-    console.log(exsistUser)
     if(exsistUser) {
       return res.status(409).json({
         msg: "error creating user",
@@ -314,6 +329,21 @@ app.get('/user', async(req, res) => {
 
 app.post('/createLevel',verifytoken, async(req, res) => {
   const { body, color, title, user_id } = req.body
+  const already = await Level.findOne({
+    where: {
+      [Op.or]: {
+        body,
+        title
+      }
+    }
+  })
+  if(already){
+    return res.status(409).json({
+      msg: "error creating level",
+      title: "LevelException",
+      body:"Level already existed"
+    })
+  }
   jwt.verify(req.token, "expressnuxtsecret", (err, authData) => {
     if(err) {
       res.sendStatus(403)

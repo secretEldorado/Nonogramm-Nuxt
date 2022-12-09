@@ -33,10 +33,16 @@ export default {
             errormsg: ''
         }
     }, async asyncData({ $axios }) {
-    const data = await $axios.get('http://localhost:3000/express/getLevel')
-    return {
-        levels:data.data
-    }
+      try {
+        const data = await $axios.get('http://localhost:3000/express/getLevel')
+        return {
+          levels:data.data
+        }
+      } catch(error) {
+        return {
+          errormsg: error.response.data.body
+        }
+      }
   }
 }
 </script>

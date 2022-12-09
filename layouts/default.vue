@@ -49,6 +49,9 @@ ul {
 input {
   font-family: 'Seaweed', cursive;
 }
+.flex {
+  display: flex;
+}
 .container {
     margin:0 auto;
     padding: 0 60px;

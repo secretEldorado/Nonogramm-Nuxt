@@ -1,14 +1,16 @@
 <template>
-  <nuxt-link :to="'levels/' + id">
     <div class="level-container">
-        <h3>{{level.title}}</h3>
+        <nuxt-link :to="'/category/levels/' + id">
+            <h3>{{level.title}}</h3>
+        </nuxt-link>
         <div class="levelcard-flex">
-            <p>created by: {{level.userName}}</p>
+            <nuxt-link :to="'/category/profile/' + level.user_id">
+                <p>created by: {{level.userName}}</p>
+            </nuxt-link>
             <p>color: {{level.color}}</p>
             <p>size: {{level.length}}x{{level.height}}</p>
         </div>
     </div>
-  </nuxt-link>
 </template>
 
 <script>
@@ -29,6 +31,9 @@ export default {
     box-shadow: 5px 10px 18px #888888;
 }
 
+.level-container a {
+    color: purple;
+}
 .level-container:active{
     box-shadow: none;
     background-color: #CCC;
