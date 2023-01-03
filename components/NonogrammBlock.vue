@@ -118,7 +118,6 @@ export default {
       }
     },
     clearField(){
-      console.log('field cleared')
       this.isBlack = false
       this.markIcon = false
       this.upIcon = false

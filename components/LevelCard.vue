@@ -10,6 +10,14 @@
             <p>color: {{level.color}}</p>
             <p>size: {{level.length}}x{{level.height}}</p>
         </div>
+        <div class="levelcard-flex">
+            <p>likes: {{level.likeCount}}</p>
+            <i v-if="$auth.loggedIn && ($auth.$state.user.user_name !== level.userName)" :class="['fa-sharp', 'fa-solid', 'fa-thumbs-up', level.userLikedLevel ? 'liked' : '']" @click="likeLevel(level.id)"></i>
+            <div class="levelcard-flex">
+                <p>completed: </p>
+                <input type="checkbox" class="disable-click" :checked="level.userCompletedLevel"/>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -17,6 +25,21 @@
 export default {
     name: 'LevelCard',
     props: ['level', 'id'],
+    methods: {
+        async likeLevel(id){
+            const response = await this.$axios.post('http://localhost:3000/express/likeLevel', {
+            user_id: this.$auth.state.user.id,
+            level_id: id
+            }).catch(({response}) => {
+                return response
+            })
+            if(response.status >= 400) {
+                this.$emit('error-message', response)
+            } else {
+                this.$emit('likedComment', id)
+            }
+        }
+    }
 }
 </script>
 
@@ -44,6 +67,17 @@ export default {
     justify-content: space-between;
 }
 
+.levelcard-flex i{
+    color: black;
+}
+
+input[type="checkbox"]{
+    margin-left: 10px;
+}
+
+.disable-click{
+    pointer-events: none;
+}
 @media (max-width: 768px) {
     .level-container{
         border: 2px solid green;

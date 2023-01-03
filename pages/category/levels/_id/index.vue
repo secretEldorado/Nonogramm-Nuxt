@@ -36,8 +36,37 @@
         <i :class="['fa-solid', 'fa-arrow-rotate-left', turnCount === 0 ? 'disable-click' : '']" @click="undoOne"/>
         <i :class="['fa-solid', 'fa-arrow-rotate-right', turnCount >= turnHistory.length ? 'disable-click' : '']" @click="redoOne"/>
         <p :class="{ 'disable-click':turnCount >= turnHistory.length }" @click="redoAll">set to current Turn</p>
-        <p @click="rightTrack">Check Error</p>
+        <p @click="rightTrack" :class="{ 'disable-click' : !hasNotSolved}">Check Error</p>
     </div>
+
+    <!-- comments -->
+    <div>
+        <h2 @click="lookAtComments">Comments:</h2>
+        <div v-if="seeComment" class="comment-section">
+            <div class="flex">
+                <p>refresh Comment: </p>
+                <i class="fa-solid fa-arrow-rotate-right" @click="refreshComments"/>
+            </div>
+            <div v-for="comment in comments" :key="comment.id" class="comment-container">
+                <div class="comment-header">
+                    <p><b>created by:</b> {{comment.username}}</p>
+                    <p><b>on:</b> {{comment.createdAt}}</p>
+                    <div class="like-section">
+                    <div><b>Likes:</b> {{comment.countLike}}</div>
+                    <div v-if="$auth.loggedIn && ($auth.$state.user.user_name !== comment.username)">
+                        <i :class="['fa-sharp', 'fa-solid', 'fa-thumbs-up', comment.userLikedComment ? 'liked' : '']" @click="likeComment(comment.id)"></i>
+                    </div>
+                </div>
+                </div>
+                <div>{{comment.body}}</div>
+            </div>
+            <form v-if="$auth.loggedIn" @submit.prevent="sendComment" method="post">
+                <textarea v-model="commentBody" rows="10" cols="30" placeholder="Your comment"/>
+                <input type="submit" class="btn" :disabled="!commentBody" value="submit comment">
+            </form>
+        </div>
+    </div>
+
     <div class=" btn">
       <nuxt-link to='/category'>{{button}}</nuxt-link>
     </div>
@@ -96,6 +125,10 @@ export default {
             checkRight:false,
             turnHistory:[],
             turnCount:0,
+            seeComment: false,
+            alreadyLoaded: false,
+            comments:[],
+            commentBody:"",
         }
     },
     async asyncData({ params, $axios }) {
@@ -189,7 +222,7 @@ export default {
         }
     },
     methods: {
-        changeBlock(id, isColor){
+        async changeBlock(id, isColor){
             const positionx = ((id - 1) % this.current[0].length)
             const positiony = Math.trunc((id - 1) / this.current[0].length)
             if(isColor) {
@@ -213,6 +246,24 @@ export default {
                 }
             }
             if(winCount === this.size) {
+                if(this.$auth.loggedIn){
+                    try{
+                        const response = await this.$axios.post('http://localhost:3000/express/completedLevel', {
+                            user_id: this.$auth.state.user.id,
+                            level_id: this.$route.params.id
+                        }).catch(({response}) => {
+                            return response
+                        })
+                        if(response.status >= 400) {
+                            throw new Error(response.data.body)
+                        }
+                    } catch(error) {
+                        this.checkError = error
+                        this.tempmm = this.mm
+                        this.tempss = this.ss
+                    }
+                }
+                this.$store.commit('addCompletedLevel', this.$route.params.id)
                 this.title = "Congratulations"
                 this.button = "Choose a new level"
                 this.hasNotSolved = false
@@ -308,18 +359,29 @@ export default {
         undoOne(){
             if(this.turnCount > 0){
                 const id = this.turnHistory[this.turnCount-1].id
-                if(this.turnHistory[this.turnCount-1].value === 0)
+                if(this.turnHistory[this.turnCount-1].value === 0){
                     this.$refs.field[id-1].isBlack = true
-                else this.$refs.field[id-1].clearField()
+                    this.current[parseInt((id-1)/this.current[0].length)][(id-1)%this.current[0].length] = 1
+                }
+                else{
+                    this.current[parseInt((id-1)/this.current[0].length)][(id-1)%this.current[0].length] = 0
+                    this.$refs.field[id-1].clearField()
+                } 
                 this.turnCount--
             }
         },
         redoOne(){
             if(this.turnCount < this.turnHistory.length) {
                 const id = this.turnHistory[this.turnCount].id
-                if(this.turnHistory[this.turnCount].value === 1)
+                if(this.turnHistory[this.turnCount].value === 1) {
                     this.$refs.field[id-1].isBlack = true
-                else this.$refs.field[id-1].clearField()
+                    this.current[parseInt((id-1)/this.current[0].length)][(id-1)%this.current[0].length] = 1
+                    this.$refs.field[id-1].isBlack = true
+                }
+                else {
+                    this.current[parseInt((id-1)/this.current[0].length)][(id-1)%this.current[0].length] = 0
+                    this.$refs.field[id-1].clearField()
+                }
                 this.turnCount++
             }
         },
@@ -348,6 +410,71 @@ export default {
             }
             this.tempmm = this.mm
             this.tempss = this.ss
+        },
+        async lookAtComments(){
+            this.seeComment = !this.seeComment
+            if(this.seeComment && !this.alreadyLoaded){
+                let user = ''
+                if(this.$auth.loggedIn) user = `?user_id=${this.$auth.$state.user.id}` 
+                const url = `http://localhost:3000/express/getComments/${this.$route.params.id}` + user
+                const response = await this.$axios.get(url).catch(({response}) => {
+                    return response
+                })
+                if(response.status >= 400) {
+                    this.checkError = response.data.body
+                    this.tempmm = this.mm
+                    this.tempss = this.ss
+                } else {
+                    console.log(response.data)
+                    this.comments = response.data
+                    this.alreadyLoaded = true
+                }
+            }
+        },
+        refreshComments(){
+            this.alreadyLoaded = false
+            this.lookAtComments()
+            this.lookAtComments()
+        },
+        async sendComment(){
+            if(this.commentBody){
+                const response = await this.$axios.post('http://localhost:3000/express/createComment', {
+                    body: this.commentBody,
+                    level_id: this.$route.params.id,
+                    user_id: this.$auth.state.user.id
+                }).catch(({response}) => {
+                    return response
+                })
+                if(response.status >= 400) {
+                    this.checkError = response.data.body
+                    this.tempmm = this.mm
+                    this.tempss = this.ss
+                } else {
+                    alert(response.data.msg)
+                    this.refreshComments()
+                }
+            }
+        },
+        async likeComment(id){
+            const index = this.comments.findIndex(item => item.id === id)
+            if(index >= 0 && index < this.comments.length){
+                const response = await this.$axios.post('http://localhost:3000/express/likeComment', {
+                user_id: this.$auth.state.user.id,
+                comment_id: id
+                }).catch(({response}) => {
+                    return response
+                })
+                if(response.status >= 400) {
+                    this.checkError = response.data.body
+                    this.tempmm = this.mm
+                    this.tempss = this.ss
+                } else {
+                    if(this.comments[index].userLikedComment) {
+                        this.comments[index].countLike--
+                    } else this.comments[index].countLike++
+                    this.comments[index].userLikedComment = !this.comments[index].userLikedComment
+                }
+            }
         },
         showTime() {
             let mm = this.mm
@@ -465,9 +592,65 @@ export default {
     -moz-transform: skewY(-45deg);
     -ms-transform: skewY(-45deg);
 }
+
+.comment-section .flex{
+    align-items: center;
+}
+.comment-section .comment-container {
+    display: grid;
+    border: solid 2px;
+    grid-template-columns: 30% 70%;
+    justify-content: space-around;
+    align-items: center;
+    background-color: pink;
+    margin-top: 10px;
+}
+.comment-section .comment-header {
+    display: block;
+    font-size: 0.8rem;
+    border-right: solid 2px;
+    background-color: rgb(255, 215, 222);
+}
+.comment-section form {
+    display: flex;
+    flex-direction: column;
+}
+.comment-section .btn {
+    margin: 10px 30px !important;
+    font-size: 1rem !important;
+}
+.comment-section textarea {
+    margin-top: 20px;
+    font-size: 1.5rem;
+}
+
+.like-section {
+    display: flex;
+    justify-content: space-around;
+}
 @media (max-width: 768px) {
     #clock {
         font-size: 1.5rem;
+    }
+    .comment-section .comment-container {
+        display: block;
+        margin: 5px auto;
+    }
+    .comment-section .comment-header {
+        display: flex;
+        justify-content: space-around;
+        border: none
+    }
+    .comment-section .btn {
+        font-size: 0.8rem !important;
+        margin: 10px auto;
+    }
+    .comment-section textarea {
+        font-size: 1rem;
+    }
+
+    .like-section {
+        display: block;
     }
 }
 @media (min-width: 768px) {

@@ -4,6 +4,7 @@ const { Sequelize, DataTypes, Op } = require('sequelize')
 const mysql = require('mysql2')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const moment = require('moment')
 
 const sequelize = new Sequelize(process.env.MYSQL_DB,process.env.MYSQL_NAME,process.env.MYSQL_PASSWORD, {
   host: process.env.MYSQL_HOST,
@@ -71,12 +72,173 @@ const Level = sequelize.define("level", {
 },{
   tableName: 'level'
 })
+const LikeLevel = sequelize.define("like_level", {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
+      references: {
+        model: 'user',
+        key: 'id'
+      }
+  },
+  level_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'level',
+      key: 'id'
+    }
+  }
+},{
+  tableName: 'like_level',
+  paranoid: true, 
+})
+const Comment = sequelize.define("comment",{
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
+      references: {
+        model: 'user',
+        key: 'id'
+      }
+  },
+  level_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'level',
+      key: 'id'
+    }
+  },
+  body: {
+    type: DataTypes.TEXT,
+    allowNull: false
+  }
+}, {
+  tableName: 'comment'
+})
+const LikeComment = sequelize.define("like_comment",{
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
+      references: {
+        model: 'user',
+        key: 'id'
+      }
+  },
+  comment_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'comment',
+      key: 'id'
+    }
+  },
+},{
+  tableName: 'like_comment',
+  paranoid: true,
+})
+
+const Completed = sequelize.define("completed", {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
+      references: {
+        model: 'user',
+        key: 'id'
+      }
+  },
+  level_id: {
+    type: DataTypes.INTEGER,
+    references: {
+      model: 'level',
+      key: 'id'
+    }
+  }
+},{
+  tableName: 'completed', 
+}) 
 User.hasMany(Level,{
-  foreignKey: 'user_id'
+  foreignKey: 'user_id',
+  onDelete:'CASCADE'
 })
 Level.belongsTo(User,{
   foreignKey: 'user_id'
 })
+
+Level.hasMany(Comment,{
+  foreignKey: 'level_id',
+  onDelete:'CASCADE'
+})
+Comment.belongsTo(Level,{
+  foreignKey: 'level_id'
+})
+User.hasMany(Comment,{
+  foreignKey: 'user_id',
+  onDelete:'CASCADE',
+})
+Comment.belongsTo(User,{
+  foreignKey: 'user_id'
+})
+
+User.hasMany(LikeComment,{
+  foreignKey: 'user_id',
+  onDelete:'CASCADE',
+})
+LikeComment.belongsTo(User,{
+  foreignKey: 'user_id'
+})
+Comment.hasMany(LikeComment,{
+  foreignKey: 'comment_id',
+  onDelete:'CASCADE'
+})
+LikeComment.belongsTo(Comment,{
+  foreignKey: 'comment_id'
+})
+
+User.hasMany(LikeLevel,{
+  foreignKey: 'user_id',
+  onDelete:'CASCADE',
+})
+LikeLevel.belongsTo(User,{
+  foreignKey: 'user_id'
+})
+Level.hasMany(LikeLevel,{
+  foreignKey: 'level_id',
+  onDelete:'CASCADE'
+})
+LikeLevel.belongsTo(Level,{
+  foreignKey: 'level_id'
+})
+
+User.hasMany(Completed,{
+  foreignKey: 'user_id',
+  onDelete:'CASCADE',
+})
+Completed.belongsTo(User,{
+  foreignKey: 'user_id'
+})
+Level.hasMany(Completed,{
+  foreignKey: 'level_id',
+  onDelete:'CASCADE'
+})
+Completed.belongsTo(Level,{
+  foreignKey: 'level_id'
+})
+
 // Please do not use associate here it doesn't work 
 app.use(bodyParser.json())
 
@@ -85,6 +247,10 @@ app.get('/init', async (req, res) => {
     connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.MYSQL_DB};`)
     await User.sync()
     await Level.sync()
+    await Comment.sync()
+    await LikeComment.sync()
+    await LikeLevel.sync()
+    await Completed.sync()
     let firstUser = await User.findAll({
       where: {
         id:1
@@ -171,46 +337,161 @@ app.get('/getLevel', async (req, res) => {
     let levels
     if(req.query.range){
       const range = req.query.range.split('-')
-      levels = await Level.findAll({
-        include: {
-          model: User
-        },
-        where: {
-          [Op.or]: {
-            column: {
-              [Op.between]: [range[0], range[1]]
-            },
-            row: {
-              [Op.between]: [range[0], range[1]]
+      if(req.query.username){
+        levels = await Level.findAndCountAll({
+          include:[ 
+              {model: User,
+                where: {
+                  user_name:{
+                    [Op.like]: '%'+req.query.username+'%'
+                  }
+                } 
+              },
+              {model:LikeLevel},
+              {model:Completed}
+            ],
+          where: {
+            [Op.or]: {
+              column: {
+                [Op.between]: [range[0], range[1]]
+              },
+              row: {
+                [Op.between]: [range[0], range[1]]
+              }
             }
-          }
-        }
-      })
+          },
+          distinct:true,
+          limit:3,
+          offset: (req.query.page-1)*3
+        })
+      }
+      else if(req.query.title){
+        levels = await Level.findAndCountAll({
+          include:[ 
+              {model: User},
+              {model:LikeLevel},
+              {model:Completed}
+            ],
+          where: {
+            title:{
+              [Op.like]: '%'+req.query.title+'%'
+            },
+            [Op.or]: {
+              column: {
+                [Op.between]: [range[0], range[1]]
+              },
+              row: {
+                [Op.between]: [range[0], range[1]]
+              }
+            }
+          },
+          distinct:true,
+          limit:3,
+          offset: (req.query.page-1)*3
+        })
+      }
+      else {
+        levels = await Level.findAndCountAll({
+          include:[ 
+              {model: User},
+              {model:LikeLevel},
+              {model:Completed}
+            ],
+          where: {
+            [Op.or]: {
+              column: {
+                [Op.between]: [range[0], range[1]]
+              },
+              row: {
+                [Op.between]: [range[0], range[1]]
+              }
+            }
+          },
+          distinct:true,
+          limit:3,
+          offset: (req.query.page-1)*3
+        })
+      }
     } else if(req.query.user_id){
-      levels = await Level.findAll({
-        include: {
-          model: User
-        },
+      levels = await Level.findAndCountAll({
+        include: [ 
+          {model: User},
+          {model:LikeLevel},
+          {model:Completed}
+        ],
+        distinct:true,
         where: {
           user_id: req.query.user_id
         }
       })
-    }
-    else {
-      levels = await Level.findAll({
-        include: {
-          model: User
-        }
+    } else if(req.query.title) {
+      levels = await Level.findAndCountAll({
+        include: [ 
+          {model: User},
+          {model:LikeLevel},
+          {model:Completed}
+        ],
+        where: {
+          title:{
+            [Op.like]: '%'+req.query.title+'%'
+          }
+        },
+        distinct:true,
+        limit:3,
+        offset: (req.query.page-1)*3
+      })
+    } else if(req.query.username) {
+      levels = await Level.findAndCountAll({
+        include: [ 
+          {model: User,
+            where: {
+              user_name:{
+                [Op.like]: '%'+req.query.username+'%'
+              }
+            } 
+          },
+          {model:LikeLevel},
+          {model:Completed}
+        ],
+        distinct:true,
+        limit:3,
+        offset: (req.query.page-1)*3
       })
     }
-    if (levels.length === 0) {
+    else {
+      levels = await Level.findAndCountAll({
+        include: [ 
+          {model: User},
+          {model:LikeLevel},
+          {model:Completed}
+        ],
+        distinct:true,
+        limit:3,
+        offset: (req.query.page-1)*3
+      })
+    }
+    if (levels.length === 0 || levels.count === 0) {
       throw new Error("levels can't be found in the database")
     }
+    // console.log(levels)
     const data = []
-    levels.forEach(level => {
+    data.push({totalItem: levels.count})
+    levels.rows.forEach(level => {
       const leveldata = level.dataValues.body.split(",")
       const length = leveldata[0].length
       const height = leveldata.length
+      let ifUserLikedLevel = false
+      let ifUserCompletedLevel = false
+      level.dataValues.like_levels.forEach(like => {
+        if(parseInt(req.query.loggedInUser_id) === like.user_id) {
+          ifUserLikedLevel = true
+        }
+      })
+      level.dataValues.completeds.forEach(complete => {
+        if(parseInt(req.query.loggedInUser_id) === complete.user_id) {
+          ifUserCompletedLevel = true
+        }
+      })
       data.push({
         id: level.id,
         title: level.dataValues.title,
@@ -219,7 +500,10 @@ app.get('/getLevel', async (req, res) => {
         height,
         userName: level.dataValues.user.user_name,
         user_id: level.dataValues.user.id,
-        name: level.dataValues.user.name
+        name: level.dataValues.user.name,
+        likeCount: level.dataValues.like_levels.length,
+        userLikedLevel: ifUserLikedLevel,
+        userCompletedLevel: ifUserCompletedLevel
       })
     })
     res.json(data)
@@ -230,6 +514,72 @@ app.get('/getLevel', async (req, res) => {
       body: error.message
     })
   }
+})
+
+app.post('/likeLevel',verifytoken, (req, res) => {
+  const { user_id, level_id } = req.body
+  jwt.verify(req.token, "expressnuxtsecret", async (err, authData) => {
+    if(err) {
+      res.sendStatus(403)
+    } else {
+      const already = await LikeLevel.findOne({
+        where: {
+          user_id,
+          level_id
+        }
+      })
+      if(already){
+        LikeLevel.destroy({
+          where: {
+            user_id,
+            level_id
+          }
+        })
+        res.json({
+          msg: 'Like for a Level deleted...',
+          authData
+        })
+      } else{
+        const userLikeOwnComment = await Level.findOne({
+          where: {
+            id: level_id,
+            user_id
+          }
+        })
+        if( userLikeOwnComment){
+          return res.status(401).json({
+            msg: "error liking level",
+            title: "LikeLevelException",
+            body:"User liked its own level"
+          })
+        }
+        const ifAlreadyDeleted = await LikeLevel.findOne({
+          where: {
+            user_id,
+            level_id
+          },
+          paranoid: false
+        })
+        if(ifAlreadyDeleted) {
+          LikeLevel.restore({
+            where: {
+              user_id,
+              level_id
+            }
+          })
+        } else {
+          LikeLevel.create({
+            user_id,
+            level_id
+          })
+        }
+        res.json({
+          msg: 'Like for a Level created...',
+          authData
+        })
+      }
+    }
+  })
 })
 
 app.post('/signIn', async (req, res) => {
@@ -363,6 +713,193 @@ app.post('/createLevel',verifytoken, async(req, res) => {
         msg: 'Level created...',
         authData
       })
+    }
+  })
+})
+app.get('/getComments/:level_id', async(req, res) => {
+  const id = req.params.level_id
+  if(!id){
+    return res.status(401).json({
+      msg: "error creating comment",
+      title: "CommentException",
+      body:"No level ID"
+    })
+  } else{
+    try {
+      const comments = await Comment.findAll({
+        include:[
+          { model: User },
+          { model: LikeComment}
+        ],
+        where: {
+          level_id: id
+        }
+      })
+      if (comments.length === 0) {
+        throw new Error("comments can't be found in the database")
+      }
+      const data = []
+      comments.forEach(comment => {
+        let ifUserLikedComment = false
+        comment.dataValues.like_comments.forEach(like => {
+          if(parseInt(req.query.user_id) === like.user_id) {
+            ifUserLikedComment = true
+          }
+        })
+        data.push({
+          id: comment.dataValues.id,
+          body : comment.dataValues.body,
+          userId: comment.dataValues.user.id,
+          username: comment.dataValues.user.user_name,
+          levelId: comment.dataValues.level_id,
+          createdAt: moment(comment.dataValues.createdAt).format('D MMMM YYYY [at] HH:mm'),
+          countLike: comment.dataValues.like_comments.length,
+          userLikedComment: ifUserLikedComment
+        })
+      })
+      res.json(data)
+    } catch (error) {
+      return res.status(400).json({ 
+        msg: "error finding the Level",
+        title: error,
+        body: error.message
+      })
+    }
+  }
+})
+app.post('/createComment',verifytoken, async(req, res) => {
+  const { body, user_id, level_id } = req.body
+  const already = await Comment.findOne({
+    where: {
+      body,
+      user_id,
+      level_id
+    }
+  })
+  if(already){
+    return res.status(409).json({
+      msg: "error creating comment",
+      title: "CommentException",
+      body:"Comment already existed"
+    })
+  }
+  if(body === ''){
+    return res.status(401).json({
+      msg: "error creating comment",
+      title: "CommentException",
+      body:"Comment has no body"
+    })
+  }
+  jwt.verify(req.token, "expressnuxtsecret", (err, authData) => {
+    if(err) {
+      res.sendStatus(403)
+    } else {
+      Comment.create({
+        user_id,
+        level_id,
+        body
+      })
+      res.json({
+        msg: 'Comment created...',
+        authData
+      })
+    }
+  })
+})
+
+app.post('/likeComment',verifytoken, (req, res) => {
+  const { user_id, comment_id } = req.body
+  jwt.verify(req.token, "expressnuxtsecret", async (err, authData) => {
+    if(err) {
+      res.sendStatus(403)
+    } else {
+      const already = await LikeComment.findOne({
+        where: {
+          user_id,
+          comment_id
+        }
+      })
+      if(already){
+        LikeComment.destroy({
+          where: {
+            user_id,
+            comment_id
+          }
+        })
+        res.json({
+          msg: 'Like for a Comment deleted...',
+          authData
+        })
+      } else{
+        const userLikeOwnComment = await Comment.findOne({
+          where: {
+            id: comment_id,
+            user_id
+          }
+        })
+        if( userLikeOwnComment){
+          return res.status(401).json({
+            msg: "error liking comment",
+            title: "LikeCommentException",
+            body:"User liked its own comment"
+          })
+        }
+        const ifAlreadyDeleted = await LikeComment.findOne({
+          where: {
+            user_id,
+            comment_id
+          },
+          paranoid: false
+        })
+        if(ifAlreadyDeleted) {
+          LikeComment.restore({
+            where: {
+              user_id,
+              comment_id
+            }
+          })
+        } else {
+          LikeComment.create({
+            user_id,
+            comment_id
+          })
+        }
+        res.json({
+          msg: 'Like for a Comment created...',
+          authData
+        })
+      }
+    }
+  })
+})
+
+app.post('/completedLevel',verifytoken, (req, res) => {
+  const { user_id, level_id } = req.body
+  jwt.verify(req.token, "expressnuxtsecret", async (err, authData) => {
+    if(err) {
+      res.sendStatus(403)
+    } else {
+      const already = await Completed.findOne({
+        where: {
+          user_id,
+          level_id
+        }
+      })
+      if(already){
+        res.json({
+          msg: 'already finished that level...',
+          authData
+        })
+      } else{
+        Completed.create({
+          user_id,
+          level_id
+        })
+        res.json({
+          msg: 'Like for a Comment created...',
+          authData
+        })
+      }
     }
   })
 })

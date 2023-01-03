@@ -18,6 +18,20 @@ export default {
                 await this.$auth.loginWith("local", {
                     data: loginInfo
                 })
+                const completedLevels = this.$store.getters.getCompletedStatus
+                if(completedLevels.length > 0){
+                    completedLevels.forEach(async id => {
+                        const response = await this.$axios.post('http://localhost:3000/express/completedLevel', {
+                        user_id: this.$auth.state.user.id,
+                        level_id: id
+                        }).catch(({response}) => {
+                            return response
+                        })
+                        if(response.status >= 400) {
+                            throw new Error(response.data.body)
+                        }
+                    });
+                }
                 this.$router.push("/")
             } catch(error) {
                 return error.response.data

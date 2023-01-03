@@ -49,6 +49,9 @@ ul {
 input {
   font-family: 'Seaweed', cursive;
 }
+textarea {
+  font-family: 'Seaweed', cursive;
+}
 .flex {
   display: flex;
 }
@@ -91,6 +94,10 @@ h1 {
 .btn:active {
   background: rgb(182, 182, 6);
   box-shadow: none;
+}
+
+.liked {
+  color: green !important;
 }
 @media (max-width: 768px) {
     h1 {
