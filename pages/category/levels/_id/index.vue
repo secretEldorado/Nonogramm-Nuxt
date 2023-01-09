@@ -16,7 +16,7 @@
         </div>
          <!-- :style="{width: 125px, grid-template-columns: repeat(5, 1fr)} -->
         <div class="box-playing-field" :style= "{'width': current[0].length * 25 + 'px' , 'grid-template-columns': 'repeat(' + current[0].length +', 1fr)' }">
-            <NonogrammBlock v-for="i in size" :key="i" :id="i" :tool="currentTool" @change-field="changeBlock" :ref="'field'">
+            <NonogrammBlock v-for="i in size" :key="i" :id="i" :tool="currentTool" @change-field="changeBlock" :color="colors" :ref="'field'">
                 
             </NonogrammBlock>
         </div>
@@ -38,7 +38,11 @@
         <p :class="{ 'disable-click':turnCount >= turnHistory.length }" @click="redoAll">set to current Turn</p>
         <p @click="rightTrack" :class="{ 'disable-click' : !hasNotSolved}">Check Error</p>
     </div>
-
+    <div class="flex color-container" v-if="checkOtherColors">
+        <div v-for="(color, index) in colors" :key="color">
+            <div :class="['block', checkColor[index] ? 'used':'']" :style="{'background-color': color}" @click="setColor(index)"/>
+        </div>
+    </div>
     <!-- comments -->
     <div>
         <h2 @click="lookAtComments">Comments:</h2>
@@ -95,7 +99,7 @@ export default {
                 color:""
             },
             title: "",
-            color:"",
+            colors:[],
             time: "",
             button: "back to level",
             checkError: "",
@@ -117,8 +121,10 @@ export default {
             },
             size:0,
             currentTool:0,
+            usedColor:1,
             checkMark:false,
             checkBlock:false,
+            checkColor:[],
             checkUp:false,
             checkDown:false,
             checkLeft:false,
@@ -129,6 +135,7 @@ export default {
             alreadyLoaded: false,
             comments:[],
             commentBody:"",
+            checkOtherColors:false,
         }
     },
     async asyncData({ params, $axios }) {
@@ -143,7 +150,14 @@ export default {
         const level = this.level
         this.title = level.title
         this.body = level.body
-        this.color = level.color
+        this.colors = level.color.split(",")
+        this.colors.forEach(color => {
+            if(color === '1') color = '#000000'
+            else if(color !== '1'){
+                this.checkOtherColors = true
+                this.checkColor.push(false)
+            } 
+        })
         this.showTime()
 
         // translate to multidimensional array and set the array//
@@ -165,11 +179,14 @@ export default {
             let count = 0
             let set = 0
             let haveUsed = false
+            let setColor
             row.forEach(item => {
                 const number = parseInt(item)
                 if(set !== number && count !== 0) {
                     rowArray.push(count)
-                    colorArray.push(set)
+                    if(set === 1 || count === 0) setColor = '#000000'
+                    else setColor = this.colors[set-2]
+                    colorArray.push(setColor)
                     if(number === 0){
                         count = 0
                     } else {
@@ -184,7 +201,10 @@ export default {
             })
             if(!(haveUsed) || count !==0) {
                 rowArray.push(count)
-                colorArray.push(set)
+                let setColor
+                if(set === 1 || count === 0) setColor = '#000000'
+                else setColor = this.colors[set-2]
+                colorArray.push(setColor)
             } 
             this.leftField.numbers.push(rowArray)
             this.leftField.colorOfNumber.push(colorArray)
@@ -197,11 +217,14 @@ export default {
             let count = 0
             let set = 0
             let haveUsed = false
+            let setColor
             for(let j = 0; j<leveldata.length; j++) {
                 const number = parseInt(leveldata[j][i])
                 if(set !== number && count !== 0) {
                     columnArray.push(count)
-                    colorArray.push(set)
+                    if(set === 1 || count === 0) setColor = '#000000'
+                    else setColor = this.colors[set-2]
+                    colorArray.push(setColor)
                     if(number === 0){
                         count = 0
                     } else {
@@ -215,7 +238,9 @@ export default {
             }
             if(!(haveUsed) || count !==0) {
                 columnArray.push(count)
-                colorArray.push(set)
+                if(set === 1 || count === 0) setColor = '#000000'
+                else setColor = this.colors[set-2]
+                colorArray.push(setColor)
             } 
             this.aboveField.numbers.push(columnArray)
             this.aboveField.colorOfNumber.push(colorArray)
@@ -225,15 +250,17 @@ export default {
         async changeBlock(id, isColor){
             const positionx = ((id - 1) % this.current[0].length)
             const positiony = Math.trunc((id - 1) / this.current[0].length)
+            const prevValue = this.current[positiony][positionx]
             if(isColor) {
-                this.current[positiony][positionx] = 1
+                this.current[positiony][positionx] = this.usedColor
             } else this.current[positiony][positionx] = 0
 
             if(this.turnCount < this.turnHistory.length)
                 this.turnHistory.splice(this.turnCount, this.turnHistory.length - this.turnCount)
             this.turnHistory.push({
                 id,
-                value: this.current[positiony][positionx]
+                value: this.current[positiony][positionx],
+                prevValue
             })
             this.turnCount++
             console.log(this.turnHistory)
@@ -341,6 +368,20 @@ export default {
             else 
                 this.currentTool = 0
         },
+        setColor(index){
+            if(!this.checkColor[index]) {
+                this.uncheckEverything()
+                this.checkColor[index] = true
+            }
+            else
+                this.checkColor[index] = !this.checkColor[index]
+            if(this.checkColor[index]){
+                this.usedColor = index + 2
+                this.currentTool = 9 - index
+            }
+            else 
+                this.currentTool = 0
+        },
         uncheckEverything(){
             this.checkMark = false
             this.checkBlock = false
@@ -348,6 +389,10 @@ export default {
             this.checkDown = false
             this.checkLeft = false
             this.checkRight = false
+            for(let i = 0; i < this.checkColor.length; i++){
+                this.checkColor[i] = false
+            }
+            this.usedColor = 1
         },
         undoAll(){
             if(this.turnCount > 0) {
@@ -359,28 +404,35 @@ export default {
         undoOne(){
             if(this.turnCount > 0){
                 const id = this.turnHistory[this.turnCount-1].id
-                if(this.turnHistory[this.turnCount-1].value === 0){
+                const prevValue = this.turnHistory[this.turnCount-1].prevValue
+                this.current[parseInt((id-1)/this.current[0].length)][(id-1)%this.current[0].length] = prevValue
+                if(prevValue === 0)
+                    this.$refs.field[id-1].clearField()
+                else if(prevValue === 1){
+                    this.$refs.field[id-1].clearField()
                     this.$refs.field[id-1].isBlack = true
-                    this.current[parseInt((id-1)/this.current[0].length)][(id-1)%this.current[0].length] = 1
                 }
                 else{
-                    this.current[parseInt((id-1)/this.current[0].length)][(id-1)%this.current[0].length] = 0
                     this.$refs.field[id-1].clearField()
-                } 
+                    this.$refs.field[id-1].isColor = prevValue-1
+                }
                 this.turnCount--
             }
         },
         redoOne(){
             if(this.turnCount < this.turnHistory.length) {
                 const id = this.turnHistory[this.turnCount].id
-                if(this.turnHistory[this.turnCount].value === 1) {
-                    this.$refs.field[id-1].isBlack = true
-                    this.current[parseInt((id-1)/this.current[0].length)][(id-1)%this.current[0].length] = 1
+                const value = this.turnHistory[this.turnCount].value
+                this.current[parseInt((id-1)/this.current[0].length)][(id-1)%this.current[0].length] = value
+                if(value === 0)
+                    this.$refs.field[id-1].clearField()
+                else if(value === 1){
+                    this.$refs.field[id-1].clearField()
                     this.$refs.field[id-1].isBlack = true
                 }
-                else {
-                    this.current[parseInt((id-1)/this.current[0].length)][(id-1)%this.current[0].length] = 0
+                else{
                     this.$refs.field[id-1].clearField()
+                    this.$refs.field[id-1].isColor = value-1
                 }
                 this.turnCount++
             }
@@ -545,6 +597,19 @@ export default {
     height: 20px;
     width: 20px;
     border: none
+}
+.color-container {
+    margin-bottom: 20px;
+    border: solid 2px;
+    background-color: #FFF;
+    justify-content: space-around;
+    height: 30px;
+    align-items: center;
+}
+.color-container .block {
+    height: 20px;
+    width: 20px;
+    border: solid black 1px;
 }
 .used{
     border: red solid 2px !important;

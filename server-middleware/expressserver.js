@@ -361,8 +361,8 @@ app.get('/getLevel', async (req, res) => {
             }
           },
           distinct:true,
-          limit:3,
-          offset: (req.query.page-1)*3
+          limit:20,
+          offset: (req.query.page-1)*20
         })
       }
       else if(req.query.title){
@@ -386,8 +386,8 @@ app.get('/getLevel', async (req, res) => {
             }
           },
           distinct:true,
-          limit:3,
-          offset: (req.query.page-1)*3
+          limit:20,
+          offset: (req.query.page-1)*20
         })
       }
       else {
@@ -408,8 +408,8 @@ app.get('/getLevel', async (req, res) => {
             }
           },
           distinct:true,
-          limit:3,
-          offset: (req.query.page-1)*3
+          limit:20,
+          offset: (req.query.page-1)*20
         })
       }
     } else if(req.query.user_id){
@@ -437,8 +437,8 @@ app.get('/getLevel', async (req, res) => {
           }
         },
         distinct:true,
-        limit:3,
-        offset: (req.query.page-1)*3
+        limit:20,
+        offset: (req.query.page-1)*20
       })
     } else if(req.query.username) {
       levels = await Level.findAndCountAll({
@@ -454,8 +454,8 @@ app.get('/getLevel', async (req, res) => {
           {model:Completed}
         ],
         distinct:true,
-        limit:3,
-        offset: (req.query.page-1)*3
+        limit:20,
+        offset: (req.query.page-1)*20
       })
     }
     else {
@@ -466,8 +466,8 @@ app.get('/getLevel', async (req, res) => {
           {model:Completed}
         ],
         distinct:true,
-        limit:3,
-        offset: (req.query.page-1)*3
+        limit:20,
+        offset: (req.query.page-1)*20
       })
     }
     if (levels.length === 0 || levels.count === 0) {

@@ -5,7 +5,7 @@
     </h1>
     <p class="error">{{errormsg}}</p>
     <SearchLevel @search-level="selectChoice"/>
-    <LevelPaging :size="pageSize" @page-levels="setPage"/>
+    <LevelPaging v-if="amount>=20" :size="pageSize" @page-levels="setPage"/>
     <LevelCard v-for="level in levels" :id="level.id" :key="level.id"
     :level="level" @error-message="showError" @likedComment="changeLike"/>
     <div class="btn">
@@ -127,9 +127,9 @@ export default {
       },
       setPageSize(){
         let roundUp
-        if(this.amount%3 === 0) roundUp = 0
+        if(this.amount%20 === 0) roundUp = 0
         else roundUp = 1
-        this.pageSize = parseInt(this.amount /3) +roundUp
+        this.pageSize = parseInt(this.amount /20) +roundUp
         this.errormsg=''
       }
     }

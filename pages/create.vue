@@ -20,12 +20,20 @@
         <input v-model="levelInfo.title" type="text" placeholder="titlefield">
     </div>
     <div v-if="levelInfo.width > 0 && levelInfo.height >0" class="box-playing-field center" :style= "{'width': levelInfo.width * 25 + 'px' , 'grid-template-columns': 'repeat(' + levelInfo.width +', 1fr)' }">
-        <NonogrammBlock v-for="i in levelInfo.height*levelInfo.width" :key="i" :id="i" :tool="currentTool" @change-field="changeBlock"/>
+        <NonogrammBlock v-for="i in levelInfo.height*levelInfo.width" :key="i" :id="i" :color="levelInfo.colors" :tool="currentTool" :ref="'field'" @change-field="changeBlock" />
     </div>
     <div v-else>
         <p style="color:red">no Field unless height or weight is not zero</p>
     </div>
     <div v-if="levelInfo.width >= 5 && levelInfo.height >= 5">
+        <div class="flex color-buttons">
+            <div class="btn color-btn" @click="addColor">set new Color</div>
+            <input type="color" id="head" name="head"  v-model="color">
+            <div class="btn color-btn" @click="deleteColor">delete newest Color</div>
+        </div>
+        <div class="flex color-container" v-if="levelInfo.colors.length > 0">
+            <div v-for="(color, index) in levelInfo.colors" :class="['color-block', usedColor===index+2?'color-used':'']" :key="color" :style="'background-color:'+color" @click="setColor(index+2)"></div>
+        </div>
         <div class="btn btn-submit" @click.enter="createLevel()">Submit</div>
     </div>
   </div>
@@ -39,11 +47,14 @@ export default {
         errors:[],
         field:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         currentTool:10,
+        color:'#e66465',
         levelInfo: {
           title: '',
           width: 5,
           height: 5,
-        }
+          colors:[],
+        },
+        usedColor:1,
       }
     },
     methods: {
@@ -57,9 +68,9 @@ export default {
             }
             if(event.target.value < 5) {
                 this.errors = this.errors.filter(err => {
-                    if (err !== "width can't exceed 30" || err !== "width can't be smaller than 5") {
-                        return false
-                    } return true
+                    if (err !== "width can't exceed 30" && err !== "width can't be smaller than 5") {
+                        return true
+                    } return false
                 })
                 this.errors.push("width can't be smaller than 5")
             }
@@ -67,16 +78,16 @@ export default {
                 this.changeField(this.levelInfo.width - event.target.value, true)
                 this.levelInfo.width = event.target.value
                 this.errors = this.errors.filter(err => {
-                    if (err !== "width can't exceed 30" || err !== "width can't be smaller than 5") {
-                        return false
-                    } return true
+                    if (err !== "width can't exceed 30" && err !== "width can't be smaller than 5") {
+                        return true
+                    } return false
                 })
             }
             else {
                 this.errors = this.errors.filter(err => {
-                    if (err !== "width can't exceed 30" || err !== "width can't be smaller than 5") {
-                        return false
-                    } return true
+                    if (err !== "width can't exceed 30" && err !== "width can't be smaller than 5") {
+                        return true
+                    } return false
                 })
                 this.errors.push("width can't exceed 30")
             }
@@ -91,9 +102,9 @@ export default {
             }
             if(event.target.value < 5) {
                 this.errors = this.errors.filter(err => {
-                    if (err !==  "height can't be smaller than 5" || err !== "height can't exceed 30"){
-                        return false
-                    } return true
+                    if (err !==  "height can't be smaller than 5" && err !== "height can't exceed 30"){
+                        return true
+                    } return false
                 })
                 this.errors.push("height can't be smaller than 5")
             }
@@ -101,22 +112,23 @@ export default {
                 this.changeField(this.levelInfo.height - event.target.value, false)
                 this.levelInfo.height = event.target.value
                 this.errors = this.errors.filter(err => {
-                    if (err !==  "height can't be smaller than 5" || err !== "height can't exceed 30"){
-                        return false
-                    } return true
+                    if (err !==  "height can't be smaller than 5" && err !== "height can't exceed 30"){
+                        return true
+                    } return false
                 })
             }
             else {
                 this.errors = this.errors.filter(err => {
-                    if (err !==  "height can't be smaller than 5" || err !== "height can't exceed 30"){
-                        return false
-                    } return true
+                    if (err !==  "height can't be smaller than 5" && err !== "height can't exceed 30"){
+                        return true
+                    } return false
                 })
                 this.errors.push("height can't exceed 30")
             }
         },
         changeBlock(id){
-            this.field[id-1] = this.field[id-1] === 0 ? 1:0
+            this.field[id-1] = this.field[id-1] === this.usedColor ? 0:this.usedColor
+            console.log(this.field)
         },
         changeField(differenz, isWidth){
             const otherAxis = isWidth ? this.levelInfo.height : this.levelInfo.width
@@ -135,12 +147,52 @@ export default {
                 }
             }
         },
+        addColor(){
+            this.errors = this.errors.filter(err => {
+                if (err !==  "cannot have two of the same color as selection"){
+                    return true
+                } return false
+            }) 
+            const duplicate = this.levelInfo.colors.find(color => {
+                return color === this.color
+            })
+            if(duplicate){
+                this.errors.push("cannot have two of the same color as selection")
+                return
+            }
+            if (this.levelInfo.colors.length < 8) this.levelInfo.colors.push(this.color)
+        },
+        deleteColor(){
+            this.errors = this.errors.filter(err => {
+                if (err !==  "cannot have two of the same color as selection"){
+                    return true
+                } return false
+            }) 
+            for(let i=0; i<this.field.length; i++){
+                if(this.field[i] === this.levelInfo.colors.length+1) this.field[i] = 0
+                this.$refs.field[i].clearField()
+            }
+            this.levelInfo.colors.pop()
+            this.usedColor = 1
+            this.currentTool = 10
+        },
+        setColor(position){
+            if(this.usedColor !== position){
+                this.usedColor = position
+                this.currentTool = 11-position
+            }
+            else{
+                this.usedColor = 1
+                this.currentTool = 10
+            }
+            
+        },
         async createLevel(){
             let allowed = true
             this.errors = this.errors.filter(err => {
-                if (err !==  "enter a title please" || err !== "color the field please"){
-                    return false
-                } return true
+                if (err !==  "enter a title please" && err !== "color the field please"){
+                    return true
+                } return false
             })
             if(this.levelInfo.title === ''){
                 this.errors.push("enter a title please")
@@ -156,8 +208,33 @@ export default {
             let body = ""
             let count = 0
             if(allowed){
-                this.field.forEach(item => {
-                    body += item
+                let colortext = '1'
+                const blackUsed = this.field.find(item => {
+                    return item === 1
+                })
+                if(!blackUsed){
+                    colortext = ''
+                }
+                let noticeNotUsedColor=0
+                for(let i = 2; i < 10; i++){
+                    const colorUsed = this.field.find(item =>{
+                        return item === i
+                    })
+                    if(colorUsed){
+                        if(noticeNotUsedColor > 0){
+                            for(let j=0; j<this.field.length; j++){
+                                if(this.field[j] === i) this.field[j] = i-noticeNotUsedColor
+                            }
+                            noticeNotUsedColor = 0
+                        } 
+                        if(i === 2-noticeNotUsedColor && !blackUsed)
+                            colortext += this.levelInfo.colors[i-2]
+                        else
+                            colortext += ',' + this.levelInfo.colors[i-2]
+                    } else noticeNotUsedColor++
+                }
+                this.field.forEach(block => {
+                    body += block
                     count++
                     if(count === parseInt(this.levelInfo.width)){
                         body += ','
@@ -169,7 +246,7 @@ export default {
                     body: puzzle,
                     user_id: this.$auth.state.user.id,
                     title: this.levelInfo.title,
-                    color: '1'
+                    color: colortext
                 }).catch(({response}) => {
                     return response
                 })
@@ -199,6 +276,17 @@ input:focus-visible {
     margin-bottom: 10px;
     display: flex;
 }
+.color-container{
+    margin-top: 30px;
+    justify-content: space-around;
+    border: solid 2px black;
+    background-color: azure;
+}
+.color-block{
+    height: 20px;
+    width:20px;
+    margin: 10px 0;
+}
 .center {
     margin-top: 30px;
     margin-left: auto;
@@ -206,8 +294,24 @@ input:focus-visible {
 }
 .btn-submit {
     margin-top: 100px;
-    margin-left: auto;
-    margin-right: auto;
+}
+.color-btn{
+    font-size: 1.5rem;
+    width: 250px;
+}
+input[type="color"]{
+    border: none;
+    height: 40px;
+    width: 100px;
+}
+.color-buttons {
+    justify-content: space-evenly;
+    margin-top: 10px;
+    align-items: center;
+}
+.color-used {
+    border-radius: 50%;
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
 }
 @media (min-width: 768px) {
     .create-field p {
@@ -215,6 +319,11 @@ input:focus-visible {
     }
     .create-field input {
         font-size: 1.5rem;
+    }
+}
+@media (max-width: 768px) {
+    .color-btn {
+        font-size: 1rem;
     }
 }
 </style>

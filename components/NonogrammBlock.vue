@@ -1,12 +1,12 @@
 <template>
-  <div :class="[isBlack ? 'black-color':'white-color', 'block'] " @click.enter="changeField()">
+  <div :class="[isBlack ? 'black-color':'white-color', 'block',] " :style="{'background-color': color[isColor-1]}" @click.enter="changeField()">
     <i :class="['fa-sharp','fa-solid', markIcon ? 'fa-xmark' : '', upIcon ? 'fa-arrow-up' : '', downIcon ? 'fa-arrow-down' : '', upDownIcon ? 'fa-arrows-up-down' : '', leftIcon ? 'fa-arrow-left' : '', rightIcon ? 'fa-arrow-right' : '', leftRightIcon ? 'fa-arrows-left-right' : '']"></i>
   </div>
 </template>
 
 <script>
 export default {
-  props: ['tool', 'id'],
+  props: ['tool', 'id', 'color'],
   data() {
     return {
       isBlack: false,
@@ -16,7 +16,8 @@ export default {
       upDownIcon: false,
       leftIcon: false,
       rightIcon: false,
-      leftRightIcon: false
+      leftRightIcon: false,
+      isColor:0
     }
   }, 
   methods: {
@@ -25,6 +26,11 @@ export default {
         case 0 :
           if(this.markIcon || this.upIcon || this.downIcon || this.upDownIcon || this.leftIcon || this.rightIcon || this.leftRightIcon) {
             this.clearField()
+          }
+          else if(this.isColor > 0){
+            this.clearField()
+            this.markIcon = true
+            this.$emit('change-field', this.id, this.isColor > 0)
           }
           else if(!this.isBlack){
             this.clearField()
@@ -116,6 +122,16 @@ export default {
             this.rightIcon = false
           break
       }
+      if(this.tool > 0 && this.tool < 10){
+        console.log(this.tool)
+        if(this.isColor !== 10-this.tool){
+            this.clearField()
+            this.isColor = 10-this.tool
+          }
+          else if(this.isColor === 10-this.tool)
+            this.isColor = 0
+          this.$emit('change-field', this.id, this.isColor>0)
+      }
     },
     clearField(){
       this.isBlack = false
@@ -126,6 +142,7 @@ export default {
       this.leftIcon = false
       this.rightIcon = false
       this.leftRightIcon = false
+      this.isColor = 0
     }
   }
 }

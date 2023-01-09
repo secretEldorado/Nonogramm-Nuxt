@@ -1,5 +1,5 @@
 <template>
-  <div :class="{ solved: hasSolved}" @click="toggleSolved()">
+  <div :class="{ solved: hasSolved}" @click="toggleSolved()" :style="{'color': color }">
     <p>{{ value }}</p>
   </div>
 </template>
@@ -11,7 +11,7 @@ export default {
             hasSolved: false,
         }
     },
-    props: ['value'],
+    props: ['value', 'color'],
     methods: {
         toggleSolved() {
             this.hasSolved = !this.hasSolved

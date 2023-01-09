@@ -7,7 +7,10 @@
             <nuxt-link :to="'/category/profile/' + level.user_id">
                 <p>created by: {{level.userName}}</p>
             </nuxt-link>
-            <p>color: {{level.color}}</p>
+            <div class="levelcard-flex">
+                <p>color: </p>
+                <div v-for="color in colors" :key="color" :style="{'background-color': color}" class="miniblock"></div>
+            </div>
             <p>size: {{level.length}}x{{level.height}}</p>
         </div>
         <div class="levelcard-flex">
@@ -25,6 +28,19 @@
 export default {
     name: 'LevelCard',
     props: ['level', 'id'],
+    data(){
+        return {
+            colors:[]
+        }
+    },
+    mounted(){
+        const colorHolder = this.level.color.split(',')
+        if(colorHolder[0] === '1'){
+            colorHolder[0] = '#000000'
+        }
+        this.colors = colorHolder
+        console.log(this.colors)
+    },
     methods: {
         async likeLevel(id){
             const response = await this.$axios.post('http://localhost:3000/express/likeLevel', {
@@ -65,6 +81,7 @@ export default {
 .levelcard-flex {
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
 
 .levelcard-flex i{
@@ -77,6 +94,12 @@ input[type="checkbox"]{
 
 .disable-click{
     pointer-events: none;
+}
+
+.miniblock{
+    height: 15px;
+    width: 15px;
+    margin-right: 2px;
 }
 @media (max-width: 768px) {
     .level-container{
