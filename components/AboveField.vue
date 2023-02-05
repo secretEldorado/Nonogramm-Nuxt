@@ -27,4 +27,14 @@ export default {
     height: 25px;
 
 }
+
+@media (max-width: 768px) {
+  .single-line-above {
+    width: 20px;
+  }
+  .single-line-above p {
+    height: 20px;
+    font-size: 0.8rem;
+  }
+}
 </style>

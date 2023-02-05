@@ -1,5 +1,6 @@
 export const state = () => ({
-  temporarlyCompleted:[]
+  temporarlyCompleted:[],
+  beatBoss:false
 })
 
 export const getters = {
@@ -13,13 +14,24 @@ export const getters = {
     getCompletedStatus(state) {
       return state.temporarlyCompleted
     }, 
+    getBeatenBossStatus(state) {
+      return state.beatBoss
+    },
   };
 
 export const mutations = {
   addCompletedLevel(state, levelId ) {
-    state.temporarlyCompleted.push(levelId)
+    const found = state.temporarlyCompleted.find(id => {
+      return id === levelId
+    });
+    if(!found){
+      state.temporarlyCompleted.push(levelId)
+    }
   },
   eraseAllComplededLevel(state) {
     state.temporarlyCompleted = []
+  },
+  toggleBeatenBossStatus(state) {
+    state.beatBoss = !state.beatBoss
   }
 }

@@ -19,7 +19,7 @@
         <p>title: </p>
         <input v-model="levelInfo.title" type="text" placeholder="titlefield">
     </div>
-    <div v-if="levelInfo.width > 0 && levelInfo.height >0" class="box-playing-field center" :style= "{'width': levelInfo.width * 25 + 'px' , 'grid-template-columns': 'repeat(' + levelInfo.width +', 1fr)' }">
+    <div v-if="levelInfo.width > 0 && levelInfo.height >0" class="box-playing-field center" :style= "{'width': levelInfo.width * blockSize + 'px' , 'grid-template-columns': 'repeat(' + levelInfo.width +', 1fr)' }">
         <NonogrammBlock v-for="i in levelInfo.height*levelInfo.width" :key="i" :id="i" :color="levelInfo.colors" :tool="currentTool" :ref="'field'" @change-field="changeBlock" />
     </div>
     <div v-else>
@@ -55,7 +55,15 @@ export default {
           colors:[],
         },
         usedColor:1,
+        blockSize:25,
       }
+    },
+    mounted(){
+        window.addEventListener('resize', this.onResize)
+        this.onResize()
+    },
+    beforeDestroy() {
+        window.removeEventListener('resize', this.onResize)
     },
     methods: {
         updateWidth(event){
@@ -186,6 +194,11 @@ export default {
                 this.currentTool = 10
             }
             
+        },
+        onResize(){
+            if (window.innerWidth < 768){
+                this.blockSize = 20
+            } else this.blockSize = 25
         },
         async createLevel(){
             let allowed = true

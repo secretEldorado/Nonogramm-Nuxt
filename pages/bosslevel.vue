@@ -6,13 +6,14 @@
 
 <script>
 export default {
+    middleware: 'accessBossStage',
     data(){
         return{
-            mode:'normal'
+            mode:'boss'
         }
     },
-    async asyncData({ params, $axios }) {
-        const url = `http://localhost:3000/express/getLevel/${params.id}`
+    async asyncData({ $axios }) {
+        const url = `http://localhost:3000/express/getBossLevel`
         const data = await $axios.get(url)
         return {
             level:data.data

@@ -1,6 +1,6 @@
 const bodyParser = require('body-parser')
 const app = require('express')()
-const { Sequelize, DataTypes, Op } = require('sequelize')
+const { Sequelize, DataTypes, Op, where } = require('sequelize')
 const mysql = require('mysql2')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
@@ -10,6 +10,7 @@ const sequelize = new Sequelize(process.env.MYSQL_DB,process.env.MYSQL_NAME,proc
   host: process.env.MYSQL_HOST,
   dialect: 'mysql',
 })
+const queryInterface = sequelize.getQueryInterface()
 const connection = mysql.createConnection({
   host: process.env.MYSQL_HOST,
   user: process.env.MYSQL_NAME,
@@ -68,6 +69,10 @@ const Level = sequelize.define("level", {
   row: {
       type: DataTypes.INTEGER,
       allowNull: false
+  },
+  mode: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 },{
   tableName: 'level'
@@ -299,6 +304,41 @@ app.get('/init', async (req, res) => {
         }
       ])
     }
+    const description = await queryInterface.describeTable("level")
+    if(!description.mode){
+      queryInterface.addColumn("level", "mode", { 
+        type: DataTypes.STRING,
+        allowNull: true
+      })
+    }
+    let additionalLevel = await Level.findAll({
+      where:{
+        mode: "boss"
+      }
+    })
+    console.log(additionalLevel)
+    if(additionalLevel.length === 0){
+      Level.bulkCreate([
+        {
+          user_id: firstUser[0].dataValues.id,
+          color: '1',
+          column: 15,
+          row: 15,
+          body: '000000000111000,000000001111100,000000011110111,000000011111110,000000001111100,000000000111000,000000001111100,100000111111110,111001110001110,111111101110110,011111011110110,011111111001100,001111111111000,000011011100000,000000111111000',
+          title: 'Boss Level 1',
+          mode: 'boss'
+        },
+        {
+          user_id: firstUser[0].dataValues.id,
+          color: '1,#FFFF00,#FFA200,#00B3FF',
+          column: 10,
+          row: 10,
+          body: '0002222000,0022222200,0022122200,0332122200,3333222220,0022222222,0222222222,4222222222,0422222224,0044444440',
+          title: 'Boss Level 2',
+          mode: 'boss'
+        },
+      ])
+    }
     res.send({
       msg: "database perfectly initalised"
     })
@@ -358,6 +398,9 @@ app.get('/getLevel', async (req, res) => {
               row: {
                 [Op.between]: [range[0], range[1]]
               }
+            },
+            mode:{
+              [Op.eq] : null
             }
           },
           distinct:true,
@@ -383,6 +426,9 @@ app.get('/getLevel', async (req, res) => {
               row: {
                 [Op.between]: [range[0], range[1]]
               }
+            },
+            mode:{
+              [Op.eq] : null
             }
           },
           distinct:true,
@@ -405,6 +451,9 @@ app.get('/getLevel', async (req, res) => {
               row: {
                 [Op.between]: [range[0], range[1]]
               }
+            },
+            mode:{
+              [Op.eq] : null
             }
           },
           distinct:true,
@@ -421,7 +470,10 @@ app.get('/getLevel', async (req, res) => {
         ],
         distinct:true,
         where: {
-          user_id: req.query.user_id
+          user_id: req.query.user_id,
+          mode:{
+            [Op.eq] : null
+          }
         }
       })
     } else if(req.query.title) {
@@ -434,6 +486,9 @@ app.get('/getLevel', async (req, res) => {
         where: {
           title:{
             [Op.like]: '%'+req.query.title+'%'
+          },
+          mode:{
+            [Op.eq] : null
           }
         },
         distinct:true,
@@ -453,11 +508,17 @@ app.get('/getLevel', async (req, res) => {
           {model:LikeLevel},
           {model:Completed}
         ],
+        where: {
+          mode:{
+            [Op.eq] : null
+          }
+        },
         distinct:true,
         limit:20,
         offset: (req.query.page-1)*20
       })
     }
+    // for some odd reason mysql cannot use != or <> for queries
     else {
       levels = await Level.findAndCountAll({
         include: [ 
@@ -465,6 +526,11 @@ app.get('/getLevel', async (req, res) => {
           {model:LikeLevel},
           {model:Completed}
         ],
+        where: {
+          mode:{
+            [Op.eq] : null
+          }
+        },
         distinct:true,
         limit:20,
         offset: (req.query.page-1)*20
@@ -896,14 +962,36 @@ app.post('/completedLevel',verifytoken, (req, res) => {
           level_id
         })
         res.json({
-          msg: 'Like for a Comment created...',
+          msg: 'Level already Completed...',
           authData
         })
       }
     }
   })
 })
-
+app.get('/getBossLevel', async (req, res) => {
+  try {
+    const level = await Level.findOne({
+      where: {
+        mode: 'boss'
+      },
+      order: [
+        Sequelize.fn( 'RAND' ),
+      ]
+    })
+    res.json({
+      title: level.dataValues.title,
+      body: level.dataValues.body,
+      color: level.dataValues.color,
+    })
+  } catch (error) {
+    return res.status(400).json({ 
+      msg: "error finding the Level",
+      title: error,
+      body: error.message
+    })
+  }
+})
 function verifytoken(req, res, next) {
   // Get auth header value
   const bearerHeader = req.headers['authorization'] 

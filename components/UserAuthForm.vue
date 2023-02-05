@@ -84,6 +84,12 @@ input[type="submit"] {
   margin-top: 20px;
 }
 .enable {
+  border: solid 1px yellow !important;
   background-color: greenyellow;
+}
+@media (max-width: 768px) {
+  input {
+    font-size: 1.2rem;
+  }
 }
 </style>

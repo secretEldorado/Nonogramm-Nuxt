@@ -174,7 +174,6 @@ export default {
 .block .fa-arrows-left-right {
   font-size: 1.5rem;
   left: -0.05rem;
-  top: 0rem
 }
 .block .fa-arrow-up {
   left: 0.05rem;
@@ -188,5 +187,24 @@ export default {
   font-size: 1.5rem;
   left: 0.25rem;
   top: -0.05rem
+}
+
+@media (max-width: 768px) {
+  .block {
+    height: 20px;
+    font-size: 1.5rem;
+  }
+  .block .fa-xmark {
+    top: -0.12rem;
+    left: 0.08rem
+  }
+  .block .fa-arrows-left-right {
+    font-size: 1.2rem;
+    left: -0.05rem;
+  }
+  .block .fa-arrows-up-down {
+    font-size: 1.2rem;
+    left: 0.2rem;
+  }
 }
 </style>

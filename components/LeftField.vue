@@ -24,4 +24,14 @@ export default {
 .single-line-left p {
     width: 25px;
 }
+
+@media (max-width: 768px) {
+  .single-line-left {
+    height: 20px;
+  }
+  .single-line-left p {
+    width: 20px;
+    font-size: 0.8rem;
+  }
+}
 </style>

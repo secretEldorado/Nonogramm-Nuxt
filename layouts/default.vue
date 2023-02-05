@@ -1,7 +1,7 @@
 <template>
   <div class="field">
     <AppHeader/>
-    <div class="container">
+    <div class="container" :style="{'background-color': color}">
         <Nuxt/>
     </div>
   </div>
@@ -12,6 +12,39 @@ import AppHeader from "../components/AppHeader";
 export default {
   components: {
     AppHeader
+  },
+  created(){
+    this.$nuxt.$on('changeBackground', ($event) => this.changeColor($event))
+  },
+  data(){
+    return {
+      color: '#e1f8ff'
+    }
+  },
+  methods: {
+    changeColor(count){
+      switch(count){
+        case 0:
+          this.color = '#e1f8ff'
+          break
+        case 1:
+          this.color = '#c9ebff'
+          break
+        case 2:
+          this.color = '#abb5ff'
+          break
+        case 3:
+          this.color = '#7475b6'
+          break
+        case 4:
+          this.color = '#5148b2'
+          break
+        case 5:
+          this.color = '#063852'
+          break
+        // case 56: #063852 #0011A27
+      }
+    }
   }
 };
 </script>
@@ -58,7 +91,7 @@ textarea {
 .container {
     margin:0 auto;
     padding: 0 60px;
-    background: lightblue;
+    padding-bottom: 10px;
     text-align: center;
     max-width: 1200px;
 }
