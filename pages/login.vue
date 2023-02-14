@@ -8,6 +8,18 @@
 
 <script>
 export default {
+    head () {
+      return {
+          title: 'Nonogramm Login',
+          meta: [
+              {
+                  hid: 'description',
+                  name: 'login',
+                  content: 'Login to create level'
+              }
+          ]
+      }
+  },
     middleware: 'guestOnly',
     // computed: {
     //     ...mapGetters(['isAuthenticated','getUserInfo']),
@@ -21,7 +33,8 @@ export default {
                 const completedLevels = this.$store.getters.getCompletedStatus
                 if(completedLevels.length > 0){
                     completedLevels.forEach(async id => {
-                        const response = await this.$axios.post('http://localhost:3000/express/completedLevel', {
+                        const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/completedLevel' : 'http://www.mywebsite.com/express/completedLevel'
+                        const response = await this.$axios.post(url, {
                         user_id: this.$auth.state.user.id,
                         level_id: id
                         }).catch(({response}) => {

@@ -1,5 +1,5 @@
 <template>
-  <div :class="[isBlack ? 'black-color':'white-color', 'block',] " :style="{'background-color': color[isColor-1]}" @click.enter="changeField()">
+  <div :class="[isBlack ? 'black-color':'white-color', 'block',] " :style="{'background-color': color[isColor-1]}" @pointerdown="changeField()">
     <i :class="['fa-sharp','fa-solid', markIcon ? 'fa-xmark' : '', upIcon ? 'fa-arrow-up' : '', downIcon ? 'fa-arrow-down' : '', upDownIcon ? 'fa-arrows-up-down' : '', leftIcon ? 'fa-arrow-left' : '', rightIcon ? 'fa-arrow-right' : '', leftRightIcon ? 'fa-arrows-left-right' : '']"></i>
   </div>
 </template>
@@ -123,7 +123,6 @@ export default {
           break
       }
       if(this.tool > 0 && this.tool < 10){
-        console.log(this.tool)
         if(this.isColor !== 10-this.tool){
             this.clearField()
             this.isColor = 10-this.tool

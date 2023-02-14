@@ -4,7 +4,6 @@
     <div id = "clock">{{time}}</div>
     <p>{{ checkError }}</p>
     <!-- game -->
-    <p>{{mode}}</p>
     <div class="box">
         <div class="box-empty">
 
@@ -25,32 +24,32 @@
 
     <!-- helper icons -->
     <div class="flex helper-container">
-        <i :class="['fa-sharp','fa-solid', 'fa-xmark', checkMark ? 'used':'']" @click="setMark"/>
-        <div :class="['black-color', 'block', checkBlock ? 'used':'']" @click="setBlock"/>
-        <i :class="['fa-solid','fa-arrow-up',checkUp ? 'used':'']" @click="setUpArrow"/>
-        <i :class="['fa-solid','fa-arrow-down',checkDown ? 'used':'']" @click="setDownArrow"/>
-        <i :class="['fa-solid','fa-arrow-left',checkLeft ? 'used':'']" @click="setLeftArrow"/>
-        <i :class="['fa-solid','fa-arrow-right',checkRight ? 'used':'']" @click="setRightArrow"/>
+        <i :class="['fa-sharp','fa-solid', 'fa-xmark', checkMark ? 'used':'']" @pointerdown="setMark"/>
+        <div :class="['black-color', 'block', checkBlock ? 'used':'']" @pointerdown="setBlock"/>
+        <i :class="['fa-solid','fa-arrow-up',checkUp ? 'used':'']" @pointerdown="setUpArrow"/>
+        <i :class="['fa-solid','fa-arrow-down',checkDown ? 'used':'']" @pointerdown="setDownArrow"/>
+        <i :class="['fa-solid','fa-arrow-left',checkLeft ? 'used':'']" @pointerdown="setLeftArrow"/>
+        <i :class="['fa-solid','fa-arrow-right',checkRight ? 'used':'']" @pointerdown="setRightArrow"/>
     </div>
     <div class="flex helper-container">
-        <p @click="undoAll" :class="{ 'disable-click':turnCount === 0 }">Begin</p>
-        <i :class="['fa-solid', 'fa-arrow-rotate-left', turnCount === 0 ? 'disable-click' : '']" @click="undoOne"/>
-        <i :class="['fa-solid', 'fa-arrow-rotate-right', turnCount >= turnHistory.length ? 'disable-click' : '']" @click="redoOne"/>
-        <p :class="{ 'disable-click':turnCount >= turnHistory.length }" @click="redoAll">set to current Turn</p>
-        <p @click="rightTrack" :class="{ 'disable-click' : !hasNotSolved}">Check Error</p>
+        <p @pointerdown="undoAll" :class="{ 'disable-click':turnCount === 0 }">Begin</p>
+        <i :class="['fa-solid', 'fa-arrow-rotate-left', turnCount === 0 ? 'disable-click' : '']" @pointerdown="undoOne"/>
+        <i :class="['fa-solid', 'fa-arrow-rotate-right', turnCount >= turnHistory.length ? 'disable-click' : '']" @pointerdown="redoOne"/>
+        <p :class="{ 'disable-click':turnCount >= turnHistory.length }" @pointerdown="redoAll">set to current Turn</p>
+        <p @pointerdown="rightTrack" :class="{ 'disable-click' : !hasNotSolved}">Check Error</p>
     </div>
     <div class="flex color-container" v-if="checkOtherColors">
         <div v-for="(color, index) in colors" :key="color">
-            <div :class="['block', checkColor[index] ? 'used':'']" :style="{'background-color': color}" @click="setColor(index)"/>
+            <div :class="['block', checkColor[index] ? 'used':'']" :style="{'background-color': color}" @pointerdown="setColor(index)"/>
         </div>
     </div>
     <!-- comments -->
     <div v-if="mode!=='boss'">
-        <h2 @click="lookAtComments">Comments:</h2>
+        <h2 @pointerdown="lookAtComments">Comments:</h2>
         <div v-if="seeComment" class="comment-section">
             <div class="flex">
                 <p>refresh Comment: </p>
-                <i class="fa-solid fa-arrow-rotate-right" @click="refreshComments"/>
+                <i class="fa-solid fa-arrow-rotate-right" @pointerdown="refreshComments"/>
             </div>
             <div v-for="comment in comments" :key="comment.id" class="comment-container">
                 <div class="comment-header">
@@ -59,7 +58,7 @@
                     <div class="like-section">
                     <div><b>Likes:</b> {{comment.countLike}}</div>
                     <div v-if="$auth.loggedIn && ($auth.$state.user.user_name !== comment.username)">
-                        <i :class="['fa-sharp', 'fa-solid', 'fa-thumbs-up', comment.userLikedComment ? 'liked' : '']" @click="likeComment(comment.id)"></i>
+                        <i :class="['fa-sharp', 'fa-solid', 'fa-thumbs-up', comment.userLikedComment ? 'liked' : '']" @pointerdown="likeComment(comment.id)"></i>
                     </div>
                 </div>
                 </div>
@@ -86,11 +85,11 @@ export default {
     props: ['mode', 'level'],
     head () {
         return {
-            title: this.title,
+            title: 'Level: ' + this.title,
             meta: [
                 {
                     hid: 'description',
-                    name: 'description',
+                    name: 'level',
                     content: 'Level'
                 }
             ]
@@ -138,9 +137,15 @@ export default {
             checkOtherColors:false,
             showDuck:[false, false, false],
             blockSize: 25,
+            url:''
         }
     },
     created(){
+        if(process.env.NODE_ENV === 'development'){
+            this.url = 'http://localhost:3000'
+        } else {
+            this.url = 'http://www.mywebsite.com'
+        }
         // initialisation and set time//
         const level = this.level
         this.title = level.title
@@ -158,7 +163,6 @@ export default {
         })
         if(this.colors[0] === '#000000')
             this.colors.shift()
-        console.log(this.colors)
         if(this.mode === 'normal') this.showTime()
         if(this.mode === 'boss') this.countDown()
 
@@ -276,7 +280,6 @@ export default {
                 prevValue
             })
             this.turnCount++
-            console.log(this.turnHistory)
             let winCount = 0
             for(let i = 0; i < this.current.length; i++) {
                 for(let j = 0; j < this.current[0].length; j++) {
@@ -290,7 +293,7 @@ export default {
                     const ifBeaten = this.$store.getters.getBeatenBossStatus
                     if(this.$auth.loggedIn){
                         try{
-                            const response = await this.$axios.post('http://localhost:3000/express/completedLevel', {
+                            const response = await this.$axios.post(this.url + '/express/completedLevel', {
                                 user_id: this.$auth.state.user.id,
                                 level_id: this.$route.params.id
                             }).catch(({response}) => {
@@ -498,7 +501,7 @@ export default {
             if(this.seeComment && !this.alreadyLoaded){
                 let user = ''
                 if(this.$auth.loggedIn) user = `?user_id=${this.$auth.$state.user.id}` 
-                const url = `http://localhost:3000/express/getComments/${this.$route.params.id}` + user
+                const url = this.url + `/express/getComments/${this.$route.params.id}` + user
                 const response = await this.$axios.get(url).catch(({response}) => {
                     return response
                 })
@@ -507,7 +510,6 @@ export default {
                     this.tempmm = this.mm
                     this.tempss = this.ss
                 } else {
-                    console.log(response.data)
                     this.comments = response.data
                     this.alreadyLoaded = true
                 }
@@ -520,7 +522,7 @@ export default {
         },
         async sendComment(){
             if(this.commentBody){
-                const response = await this.$axios.post('http://localhost:3000/express/createComment', {
+                const response = await this.$axios.post(this.url + '/express/createComment', {
                     body: this.commentBody,
                     level_id: this.$route.params.id,
                     user_id: this.$auth.state.user.id
@@ -540,7 +542,7 @@ export default {
         async likeComment(id){
             const index = this.comments.findIndex(item => item.id === id)
             if(index >= 0 && index < this.comments.length){
-                const response = await this.$axios.post('http://localhost:3000/express/likeComment', {
+                const response = await this.$axios.post(this.url + '/express/likeComment', {
                 user_id: this.$auth.state.user.id,
                 comment_id: id
                 }).catch(({response}) => {

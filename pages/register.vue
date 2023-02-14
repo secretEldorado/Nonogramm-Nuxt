@@ -8,10 +8,23 @@
 
 <script>
 export default {
+    head () {
+      return {
+          title: 'Nonogramm Registration',
+          meta: [
+              {
+                  hid: 'description',
+                  name: 'register',
+                  content: 'Registrate to create level'
+              }
+          ]
+      }
+  },
     middleware: 'guestOnly',
     methods: {
         async registerUser(registrationInfo){
-                const response = await this.$axios.post("/express/signIn", {
+                const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/signIn' : 'http://www.mywebsite.com/express/signIn'
+                const response = await this.$axios.post(url, {
                     name: registrationInfo.name,
                     username: registrationInfo.username,
                     password: registrationInfo.password

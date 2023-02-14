@@ -7,7 +7,7 @@
         </div>
         <div class="size-maker"/>
         <div class="boss-wrapper">
-            <img src="/exampleDuck.png" class="boss-image">
+            <img src="/exampleDuckOnUFO.png" class="boss-image">
             <div class="dialog-option" :style="{'cursor': showOptions ? 'default':'pointer'}">
                 <p @click="changeSituation">Help</p>
                 <p @click="changeSituation">F**k u</p>
@@ -23,10 +23,23 @@
 <script>
 import anime from 'animejs';
 export default {
+    head () {
+      return {
+          title: 'ready????',
+          meta: [
+              {
+                  hid: 'description',
+                  name: 'boss',
+                  content: 'important moment'
+              }
+          ]
+      }
+  },
     middleware: 'accessBossStage',
     data(){
         return{
             scaling:0,
+            top:0,
             comming: true,
             showOptions:true,
             bossText: 'Hello player',
@@ -46,9 +59,9 @@ export default {
         })
         const animation = anime({
             targets: ".boss-image",
-            scale: this.scaling,
+            scale: this.scaling/2,
             duration: 5000,
-            top: this.scaling-100,
+            top: this.top,
             easing: 'easeInOutCubic',
         })
         animation.finished.then(this.finishedInitialAnimation)
@@ -62,12 +75,16 @@ export default {
         onResize(){
             if(this.comming){
                 if (window.innerWidth < 768){
-                    this.scaling = 300
-                } else this.scaling = 500
+                    this.scaling = 200
+                    this.top = 200
+                } else {
+                    this.scaling = 350
+                    this.top = 350
+                }
                 anime({
                     targets: ".boss-image",
-                    scale: this.scaling,
-                    top: this.scaling-100,
+                    scale: this.scaling/2,
+                    top: this.top,
                     duration: 1,
                     easing: 'linear',
                 })
@@ -84,7 +101,6 @@ export default {
         },
         nextDialog(){
             if(this.comming){
-                console.log("message")
                 switch (this.dialogCount){
                     case 0:
                         this.bossText = "you thought you can play the game peacefully"
@@ -170,7 +186,8 @@ export default {
     opacity: 0;
 }
 .boss-image{
-    height: 1px;
+    height: 2px;
+    width: 3px;
     float: left;
     position: relative;
 }

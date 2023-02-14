@@ -19,7 +19,7 @@ export default {
           meta: [
               {
                   hid: 'description',
-                  name: 'description',
+                  name: 'main',
                   content: 'Calm place to play Nonogramm'
               }
           ]
@@ -31,7 +31,8 @@ export default {
     }
   },
   async asyncData({ $axios }) {
-    const message = await $axios.get('http://localhost:3000/express/init')
+    const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/init' : 'http://www.mywebsite.com/express/init'
+    const message = await $axios.get(url)
     if(message.msg === "error in initialising the Database") {
       return {
         errormsg: "Problem with the Database"

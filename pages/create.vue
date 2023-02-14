@@ -42,6 +42,18 @@
 <script>
 export default {
     middleware:"isAuthenticated",
+    head () {
+      return {
+          title: 'Creation of a level',
+          meta: [
+              {
+                  hid: 'description',
+                  name: 'create',
+                  content: 'make ur own Level'
+              }
+          ]
+      }
+  },
     data() {
       return {
         errors:[],
@@ -136,7 +148,6 @@ export default {
         },
         changeBlock(id){
             this.field[id-1] = this.field[id-1] === this.usedColor ? 0:this.usedColor
-            console.log(this.field)
         },
         changeField(differenz, isWidth){
             const otherAxis = isWidth ? this.levelInfo.height : this.levelInfo.width
@@ -255,7 +266,8 @@ export default {
                     }
                 })
                 const puzzle = body.slice(0, -1)
-                const response = await this.$axios.post("/express/createLevel", {
+                const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/createLevel' : 'http://www.mywebsite.com/express/createLevel'
+                const response = await this.$axios.post(url, {
                     body: puzzle,
                     user_id: this.$auth.state.user.id,
                     title: this.levelInfo.title,

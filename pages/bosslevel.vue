@@ -13,7 +13,13 @@ export default {
         }
     },
     async asyncData({ $axios }) {
-        const url = `http://localhost:3000/express/getBossLevel`
+        let rootUrl
+        if(process.env.NODE_ENV === 'development'){
+          rootUrl = 'http://localhost:3000'
+        } else {
+          rootUrl = 'http://www.mywebsite.com'
+        }
+        const url = rootUrl + `/express/getBossLevel`
         const data = await $axios.get(url)
         return {
             level:data.data

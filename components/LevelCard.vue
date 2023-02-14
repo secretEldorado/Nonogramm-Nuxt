@@ -39,7 +39,6 @@ export default {
             colorHolder[0] = '#000000'
         }
         this.colors = colorHolder
-        console.log(this.colors)
     },
     methods: {
         async likeLevel(id){

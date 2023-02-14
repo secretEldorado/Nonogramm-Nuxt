@@ -20,7 +20,7 @@
 <script>
 
 export default {
-
+  // mustermann124, 123456
     data() {
       return {
         errors:[],
@@ -28,8 +28,8 @@ export default {
         showPassword: false,
         userInfo: {
           name: '',
-          username: 'mustermann123',
-          password: '123456'
+          username: '',
+          password: ''
         }
       }
     },

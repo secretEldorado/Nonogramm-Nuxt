@@ -14,20 +14,38 @@
 </template>
 <script>
 export default {
+    head () {
+        return {
+            title: this.username + ' levels',
+            meta: [
+                {
+                    hid: 'description',
+                    name: 'category',
+                    content: 'the levels of a user'
+                }
+            ]
+        }
+    },
     data(){
         return{
             username:'',
             name:'',
             levels:[],
-            errormsg:''
+            errormsg:'',
+            url:'',
         }
     } ,
     async created() {
         try{
+            if(process.env.NODE_ENV === 'development'){
+              this.url = 'http://localhost:3000'
+            } else {
+              this.url = 'http://www.mywebsite.com'
+            }
             let loggedInUser = ''
             if(this.$auth.loggedIn)
             loggedInUser = `&loggedInUser_id=${this.$auth.$state.user.id}`
-            const url = `http://localhost:3000/express/getLevel?user_id=${this.$route.params.id}`+loggedInUser
+            const url = this.url + `/express/getLevel?user_id=${this.$route.params.id}`+loggedInUser
             const data = await this.$axios.get(url)
             this.levels = data.data
             this.levels.shift()
@@ -53,7 +71,6 @@ export default {
     },
     methods: {
       showError(msg){
-        console.log(msg)
         this.errormsg = msg
       },
       changeLike(id){

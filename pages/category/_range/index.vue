@@ -23,7 +23,7 @@ export default {
             meta: [
                 {
                     hid: 'description',
-                    name: 'description',
+                    name: 'category',
                     content: 'Choose a level'
                 }
             ]
@@ -34,14 +34,20 @@ export default {
           amount:0,
           pageSize:0,
           levels: [],
-          errormsg: null
+          errormsg: null,
+          url:'',
       }
   }, 
   async mounted() {
     try{
+      if(process.env.NODE_ENV === 'development'){
+        this.url = 'http://localhost:3000'
+      } else {
+        this.url = 'http://www.mywebsite.com'
+      }
       let user = ''
       if(this.$auth.loggedIn) user = `&loggedInUser_id=${this.$auth.$state.user.id}` 
-      const url = `http://localhost:3000/express/getLevel?range=${this.$route.params.range}&page=1` + user
+      const url = this.url + `/express/getLevel?range=${this.$route.params.range}&page=1` + user
       const data = await this.$axios.get(url)
       this.amount = data.data[0].totalItem
       this.levels = data.data
@@ -61,7 +67,6 @@ export default {
   },
   methods: {
       showError(msg){
-        console.log(msg)
         this.errormsg = msg
       },
       changeLike(id){
@@ -79,7 +84,7 @@ export default {
           if(category === 'title') search = `&title=${input}`
           if(this.$auth.loggedIn)
             loggedInUser = `&loggedInUser_id=${this.$auth.$state.user.id}`
-          const url = `http://localhost:3000/express/getLevel?range=${this.$route.params.range}&page=1` + loggedInUser + search
+          const url = this.url + `/express/getLevel?range=${this.$route.params.range}&page=1` + loggedInUser + search
           const data = await this.$axios.$get(url)
           this.amount = data[0].totalItem
           this.levels = data
@@ -95,7 +100,6 @@ export default {
           }
           this.setPageSize()
         } catch(error) {
-          console.log(error)
           this.errormsg = error.response.data.body
         }
       },
@@ -104,7 +108,7 @@ export default {
           let loggedInUser = ''
           if(this.$auth.loggedIn)
             loggedInUser = `&loggedInUser_id=${this.$auth.$state.user.id}`
-          const url = `http://localhost:3000/express/getLevel?range=${this.$route.params.range}&page=${page}`+ loggedInUser
+          const url = this.url + `/express/getLevel?range=${this.$route.params.range}&page=${page}`+ loggedInUser
           const data = await this.$axios.$get(url)
           this.levels = data
           // remove the first item in the level array
@@ -119,7 +123,6 @@ export default {
           }
           this.errormsg=''
         } catch(error) {
-          console.log(error)
           this.errormsg = error.response.data.body
         }
       },
