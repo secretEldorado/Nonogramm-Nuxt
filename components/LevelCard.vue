@@ -42,7 +42,8 @@ export default {
     },
     methods: {
         async likeLevel(id){
-            const response = await this.$axios.post('http://localhost:3000/express/likeLevel', {
+            const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/likeLevel' : 'http://www.secreteldorado.com/express/likeLevel'
+            const response = await this.$axios.post(url, {
             user_id: this.$auth.state.user.id,
             level_id: id
             }).catch(({response}) => {

@@ -43,7 +43,7 @@ export default {
         if(process.env.NODE_ENV === 'development'){
           this.url = 'http://localhost:3000'
         } else {
-          this.url = 'http://www.mywebsite.com'
+          this.url = 'http://www.secreteldorado.com'
         }
         if(this.$auth.loggedIn)
           loggedInUser = `&loggedInUser_id=${this.$auth.$state.user.id}`

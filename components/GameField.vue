@@ -144,7 +144,7 @@ export default {
         if(process.env.NODE_ENV === 'development'){
             this.url = 'http://localhost:3000'
         } else {
-            this.url = 'http://www.mywebsite.com'
+            this.url = 'http://www.secreteldorado.com'
         }
         // initialisation and set time//
         const level = this.level
@@ -630,7 +630,7 @@ export default {
                 return
             }
             if(!this.start) {
-                mm = 30
+                mm = 20
                 ss = 0
             } else {
                 ss--

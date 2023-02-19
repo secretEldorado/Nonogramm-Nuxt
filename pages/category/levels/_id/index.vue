@@ -12,7 +12,7 @@ export default {
         }
     },
     async asyncData({ params, $axios }) {
-        const url = process.env.NODE_ENV === 'development' ? `http://localhost:3000/express/getLevel/${params.id}` : `http://www.mywebsite.com/express/getLevel/${params.id}`
+        const url = process.env.NODE_ENV === 'development' ? `http://localhost:3000/express/getLevel/${params.id}` : `http://www.secreteldorado.com/express/getLevel/${params.id}`
         const data = await $axios.get(url)
         return {
             level:data.data

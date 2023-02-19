@@ -23,7 +23,7 @@ export default {
     middleware: 'guestOnly',
     methods: {
         async registerUser(registrationInfo){
-                const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/signIn' : 'http://www.mywebsite.com/express/signIn'
+                const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/signIn' : 'http://www.secreteldorado.com/express/signIn'
                 const response = await this.$axios.post(url, {
                     name: registrationInfo.name,
                     username: registrationInfo.username,
