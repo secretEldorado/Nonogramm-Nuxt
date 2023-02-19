@@ -144,7 +144,7 @@ export default {
         if(process.env.NODE_ENV === 'development'){
             this.url = 'http://localhost:3000'
         } else {
-            this.url = 'http://www.secreteldorado.com'
+            this.url = 'https://www.secreteldorado.com'
         }
         // initialisation and set time//
         const level = this.level
@@ -713,7 +713,7 @@ export default {
 }
 .disable-click{
     pointer-events: none;
-    opacity: 50%;
+    opacity: 0.5;
 }
 
 .box-left-field {
@@ -795,7 +795,7 @@ export default {
     width: 150px;
     position: absolute;
     top: 100px;
-    opacity: 0%;
+    opacity: 0;
     animation-duration: 5s;
     animation-name: moveDuck;
     animation-iteration-count: infinite;
@@ -808,7 +808,7 @@ export default {
     left:-webkit-calc(80% - 75px);
     left:-moz-calc(80% - 75px);
     left:calc(80% - 75px);
-    opacity: 0%;
+    opacity: 0;
     animation-duration: 5s;
     animation-name: moveDuck2;
     animation-iteration-count: infinite;
@@ -820,14 +820,14 @@ export default {
     position: fixed;
     left: 30px;
     top: 400px;
-    opacity: 0%;
+    opacity: 0;
     animation-duration: 10s;
     animation-name: moveDuck3;
     animation-iteration-count: infinite;
     animation-direction: alternate;
 }
 .show-duck{
-    opacity: 100% !important;
+    opacity: 1 !important;
 }
 @keyframes moveDuck2 {
     from {

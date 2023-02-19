@@ -33,7 +33,7 @@ export default {
                 const completedLevels = this.$store.getters.getCompletedStatus
                 if(completedLevels.length > 0){
                     completedLevels.forEach(async id => {
-                        const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/completedLevel' : 'http://www.secreteldorado.com/express/completedLevel'
+                        const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/completedLevel' : 'https://www.secreteldorado.com/express/completedLevel'
                         const response = await this.$axios.post(url, {
                         user_id: this.$auth.state.user.id,
                         level_id: id

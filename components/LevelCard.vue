@@ -42,7 +42,7 @@ export default {
     },
     methods: {
         async likeLevel(id){
-            const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/likeLevel' : 'http://www.secreteldorado.com/express/likeLevel'
+            const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/likeLevel' : 'https://www.secreteldorado.com/express/likeLevel'
             const response = await this.$axios.post(url, {
             user_id: this.$auth.state.user.id,
             level_id: id
@@ -94,6 +94,7 @@ input[type="checkbox"]{
 
 .disable-click{
     pointer-events: none;
+    opacity: 50%;
 }
 
 .miniblock{

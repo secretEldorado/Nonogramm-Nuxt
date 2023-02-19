@@ -17,7 +17,7 @@ export default {
         if(process.env.NODE_ENV === 'development'){
           rootUrl = 'http://localhost:3000'
         } else {
-          rootUrl = 'http://www.secreteldorado.com'
+          rootUrl = 'https://www.secreteldorado.com'
         }
         const url = rootUrl + `/express/getBossLevel`
         const data = await $axios.get(url)

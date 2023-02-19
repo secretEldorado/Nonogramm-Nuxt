@@ -266,7 +266,7 @@ export default {
                     }
                 })
                 const puzzle = body.slice(0, -1)
-                const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/createLevel' : 'http://www.secreteldorado.com/express/createLevel'
+                const url = process.env.NODE_ENV === 'development' ? 'http://localhost:3000/express/createLevel' : 'https://www.secreteldorado.com/express/createLevel'
                 const response = await this.$axios.post(url, {
                     body: puzzle,
                     user_id: this.$auth.state.user.id,
